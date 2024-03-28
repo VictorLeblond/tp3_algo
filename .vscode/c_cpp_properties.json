@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Users\\monsi\\Desktop\\tp3_algo\\Algo_Tp3\\Q2 Escalade",
+                "${workspaceFolder}/**",
+                "${workspaceRoot}",
+                "c:\\mingw\\bin\\../lib/gcc/mingw32/6.3.0/include/c++",
+                "c:\\mingw\\bin\\../lib/gcc/mingw32/6.3.0/include",
+                "c:\\mingw\\bin\\../lib/gcc/mingw32/6.3.0/include/c++/backward",
+                "c:\\mingw\\bin\\../lib/gcc/mingw32/6.3.0/include",
+                "c:\\mingw\\bin\\../lib/gcc/mingw32/6.3.0/../../../../include",
+                "c:\\mingw\\bin\\../lib/gcc/mingw32/6.3.0/include-fixed",
+                "C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/mingw32"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "8.1",
+            "compilerPath": "C:/MinGW/bin/g++.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "${default}"
+        }
+    ],
+    "version": 4
+}
