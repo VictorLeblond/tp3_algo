@@ -1,27 +1,27 @@
-#Nom, matricule
-#Nom, matricule
+#Kelvin Chen, 20238788
+#Victor Leblond, matricule
 
-#Fonction à compléter. Ne modifiez pas sa signature.
 #N : Force maximale
 #k : Nombre de fenêtres disponibles
 #Valeur de retour : le nombre minimal de tests qu'il faut faire 
 #                   en pire cas pour déterminer le seuil de solidité 
 #                   d'une fenêtre
 #Doit retourner la réponse comme un int.
-#
-#Function to complete. Do not change its signature.
-#N : Maximum force
-#k : Number of windows available
-#return value : Minimum number of tests needed in the worst case
-#               to find the solidity threshold of a window
-#Must return the answer as an int. 
 def vitre(N, k):
-    
-    return -1
+    #axes: colonne: force maximale, rangee: nombre de vitres restantes(k)
+    #valeur represente le nombre d'essais minimales
+    tests = [[float('inf')] * (k + 1) for _ in range(N + 1)]
 
+    for s in range (1, N + 1):
+        tests[s][1] = s - 1
 
-#Fonction main, vous ne devriez pas avoir à modifier
-#Main function, you shouldn't have to modify it
+    for s in range(1, N + 1):
+        for j in range(2, k + 1):
+            for i in range(1, s):
+                tests[s][j] = min(tests[s][j], 1 + max(tests[i][j-1], tests[s-1][j]))
+
+    return tests[N][k]
+
 def main(args):
     N = int(args[0])
     k = int(args[1])
