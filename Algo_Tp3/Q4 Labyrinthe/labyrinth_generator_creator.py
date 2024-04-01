@@ -31,7 +31,7 @@ class Wall:
 class Algorithm1(Strategy) :
 
     def Apply(self):
-        #super().Apply()
+        super().Apply()
         print("Applying Algorithm1")
         #Iterative randomized Prim's algorithm
         cells = [[0] * cell_amount for _ in range(cell_amount)]
@@ -56,6 +56,8 @@ class Algorithm1(Strategy) :
                 walls.append(self.getWallsOfCell(cells, wall.dest))
             #Remove the wall from the list.
             walls.pop()
+        #now we have passages
+        return passages
     
     def getWallsOfCell(cells, coords):
         l = Wall(coords, Coords(coords.x - 1, coords.y)) if (coords.x - 1 >= 0) else None
@@ -67,7 +69,7 @@ class Algorithm1(Strategy) :
 class Algorithm2(Strategy) :
 
     def Apply(self):
-        #super().Apply()
+        super().Apply()
         print("Applying Algorithm2")
 
 class Generator() :
@@ -80,7 +82,7 @@ class Generator() :
         self.strategy = new_strategy
 
     def Generate(self):
-        self.strategy.Apply()
+        print(self.strategy.Apply())
         self.strategy.DoSomething()
 
 class Creator() :
