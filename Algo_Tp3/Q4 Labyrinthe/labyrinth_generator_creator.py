@@ -71,6 +71,35 @@ class Algorithm2(Strategy) :
     def Apply(self):
         super().Apply()
         print("Applying Algorithm2")
+        #Aldous-Broder algorithm
+        cells = [[0] * cell_amount for _ in range(cell_amount)]
+        visitedCount = 0
+        passages = []
+        #Pick a random cell as the current cell and mark it as visited.
+        curCoords = Coords(random(cell_amount), random(cell_amount))
+        cells[curCoords.x][curCoords.y] = 1
+        visitedCount += 1
+        #While there are unvisited cells:
+        while (visitedCount < cell_amount*cell_amount):
+            #Pick a random neighbour.
+            neighbor = self.pickRandomNode(cells, curCoords)
+            #If the chosen neighbour has not been visited
+            if (cells[neighbor.x][neighbor.y] != 1):
+                #Remove the wall between the current cell and the chosen neighbour.
+                passages.append(Wall(curCoords, neighbor))
+                #Mark the chosen neighbour as visited.
+                cells[neighbor.x][neighbor.y] = 1
+            #Make the chosen neighbour the current cell.
+            curCoords = neighbor
+            visitedCount += 1
+    
+    def pickRandomNode(cells, coords):
+        upDown = random(1,-1)
+        leftRight = random(1,-1)
+        newCoords = Coords(coords.x + leftRight, coords.y + upDown)
+        return newCoords
+
+
 
 class Generator() :
     strategy = None
