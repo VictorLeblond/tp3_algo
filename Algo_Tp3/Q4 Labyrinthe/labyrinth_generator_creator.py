@@ -156,24 +156,45 @@ class Creator() :
                 cells.append(Cell((i, j), 'u' not in walls, 'd' not in walls, 'l' not in walls, 'r' not in walls))
         return cells
 
-    def PrintLabyrinth(self):
-        #using cells
-        cells = self.cleanupCells()
-        #print(len(cells))
-        # for i in range(len(cells)):
-        #     cell = cells[i]
-        #     print(cell.up, cell.left)
-        #     top_wall = "+ " if cell.up else "+-"
-        #     bottom_wall = "+ " if cell.down else "+-"
-        #     left_wall = "| " if cell.left else "  "
-        #     right_wall = " |" if cell.right else "  "
-        #     print(f"{top_wall}{right_wall}\n{left_wall}   {right_wall}\n{bottom_wall}{right_wall}") 
+    def PrintLabyrinth(self): 
         pass
 
-    def OutpudCad(self):
+    def OutputScad(self):
         cells = self.cleanupCells()
-        
-        pass
+        filename = "./labytinthe_algo" + str(strategy_choice) + ".scad"
+        #initialize
+        content = "difference () {\nunion() {\n"
+        width = str(cell_amount * cell_size)
+        content += "translate([-0.5,-0.5,-1])\n{cube([" + width + "," + width + " 1], center=false);\n}"
+        for i in range(len(cells)):
+            #cells only take care of right and down
+            cell = cells[i]
+            if cell.down: content += self.writeWall(cell.coords, 'd')
+            if cell.right: content += self.writeWall(cell.coords, 'r')
+            #special cases for first indice x and y
+            if (cell.coords[0] == 0): content += self.writeWall(cell.coords, "u")
+            if (cell.coords[1] == 0): content += self.writeWall(cell.coords, "l")
+        content += "}\n}"
+        self.write(filename, content)
+
+    def writeWall(self, cellCoords, direction):
+        directionMap = {
+            "l": 90,
+            "r": 90,
+            "u": 0,
+            "d": 0,
+        }
+        offsetX = cellCoords[0] * cell_size #depending on dir
+        offsetY = cellCoords[1] * cell_size
+        rotation = "[0,0," + str(directionMap[direction]) + "]" #depending on dir
+        cube = "cube([" + (str(cell_size + 1)) + "," + str(wall_thickness) + "," + str(cell_size) + "], center=false);\n"
+        coords = "[" + str(offsetX) + "," + str(offsetY) + "," +",5.0]"
+        return "translate(" + coords + "){\nrotate (" + rotation + "){\n" + cube + "}\n}"
+    
+    def write(self, fileName, content):
+        file = open(fileName, "w")
+        file.write(content)
+        file.close()
 
 # main call
 def main():
@@ -195,7 +216,7 @@ def main():
     #Creator
     my_creator = Creator()
     my_creator.PrintLabyrinth()
-
+    my_creator.OutputScad()
 
 if __name__ == "__main__":
     main()
