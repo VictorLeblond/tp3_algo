@@ -5,7 +5,7 @@ from collections import defaultdict
 cell_size = 10 #mm
 wall_height = 10 #mm
 wall_thickness = 1 #mm
-cell_amount = 5 #number of cells going both sides of the square
+cell_amount = 10 #number of cells going both sides of the square
 passages = [] #use a dictionnary to map the source to...
 
 strategy_choice = 2
@@ -135,7 +135,6 @@ class Generator() :
         self.strategy.DoSomething()
 
 class Creator() :
-    #generate .scad file
     def __init__(self):
         pass
     
@@ -159,36 +158,36 @@ class Creator() :
     def PrintLabyrinth(self): 
         pass
 
+    #generate .scad file
     def OutputScad(self):
         cells = self.cleanupCells()
         filename = "./labytinthe_algo" + str(strategy_choice) + ".scad"
         #initialize
         content = "difference () {\nunion() {\n"
         width = str(cell_amount * cell_size)
-        content += "translate([-0.5,-0.5,-1])\n{cube([" + width + "," + width + " 1], center=false);\n}"
-        for i in range(len(cells)):
-            #cells only take care of right and down
-            cell = cells[i]
-            if cell.down: content += self.writeWall(cell.coords, 'd')
-            if cell.right: content += self.writeWall(cell.coords, 'r')
-            #special cases for first indice x and y
-            if (cell.coords[0] == 0): content += self.writeWall(cell.coords, "u")
-            if (cell.coords[1] == 0): content += self.writeWall(cell.coords, "l")
+        content += "translate([-0.5,-0.5,-1])\n{cube([" + width + "," + width + ",1], center=false);\n}"
+        for cell in cells:
+            #cells only take care of up and left
+            if cell.up: content += self.writeWall(cell.coords, 'u')
+            if cell.left: content += self.writeWall(cell.coords, 'l')
+            #special cases for first last indices x and y
+            if (cell.coords[0] == cell_amount - 1): content += self.writeWall(cell.coords, "r")
+            if (cell.coords[1] == cell_amount - 1): content += self.writeWall(cell.coords, "d")
         content += "}\n}"
         self.write(filename, content)
 
     def writeWall(self, cellCoords, direction):
         directionMap = {
-            "l": 90,
+            "l": 0,
+            "u": 90,
             "r": 90,
-            "u": 0,
             "d": 0,
         }
-        offsetX = cellCoords[0] * cell_size #depending on dir
-        offsetY = cellCoords[1] * cell_size
-        rotation = "[0,0," + str(directionMap[direction]) + "]" #depending on dir
+        offsetX = (cellCoords[0] + (1 if direction == 'r' else 0)) * cell_size + (1 if direction == 'u' or direction == "r" else 0)
+        offsetY = (cellCoords[1] + (1 if direction == 'd' else 0)) * cell_size
+        rotation = "[0,0," + str(directionMap[direction]) + "]"
         cube = "cube([" + (str(cell_size + 1)) + "," + str(wall_thickness) + "," + str(cell_size) + "], center=false);\n"
-        coords = "[" + str(offsetX) + "," + str(offsetY) + "," +",5.0]"
+        coords = "[" + str(offsetX) + "," + str(offsetY) + "," +",0]"
         return "translate(" + coords + "){\nrotate (" + rotation + "){\n" + cube + "}\n}"
     
     def write(self, fileName, content):
