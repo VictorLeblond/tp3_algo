@@ -4,7 +4,8 @@ import random
 cell_size = 10 #mm
 wall_height = 10 #mm
 wall_thickness = 1 #mm
-cell_amount = 20 #number of cells going both sides of the square
+cell_amount = 5 #number of cells going both sides of the square
+passages = []
 
 strategy_choice = 1
 
@@ -31,18 +32,17 @@ class Wall:
 class Algorithm1(Strategy) :
 
     def Apply(self):
-        super().Apply()
+        #super().Apply()
         print("Applying Algorithm1")
         #Iterative randomized Prim's algorithm
         cells = [[0] * cell_amount for _ in range(cell_amount)]
         walls = []
         #Start with a grid full of walls. or no passages
-        passages = []
         #Pick a cell, mark it as part of the maze.
-        startCoords = Coords(random(cell_size), random(cell_size))
+        startCoords = Coords(random.randrange(0, cell_amount - 1), random.randrange(0, cell_amount - 1))
         cells[startCoords.x][startCoords.y] = 1
         #Add the walls of the cell to the wall list
-        walls.append(self.getWallsOfCell(cells, startCoords))
+        walls.extend(self.getWallsOfCell(startCoords))
         #While there are walls in the list
         while(walls):
             #Pick a random wall from the list.
@@ -51,20 +51,27 @@ class Algorithm1(Strategy) :
             if (cells[wall.dest.x][wall.dest.y] == 0):
                 #Make the wall a passage and mark the unvisited cell as part of the maze.
                 passages.append(wall)
-                cells[wall.dest.x][wall.dest.y] == 1
+                cells[wall.dest.x][wall.dest.y] = 1
                 #Add the neighboring walls of the cell to the wall list.
-                walls.append(self.getWallsOfCell(cells, wall.dest))
+                walls.extend(self.getWallsOfCell(wall.dest))
             #Remove the wall from the list.
-            walls.pop()
+            walls.pop(0)
         #now we have passages
+        for passage in passages:
+            print(str(passage.source.x) + "," + str(passage.source.y) + "-->" + str(passage.dest.x) + "," + str(passage.dest.y))
         return passages
     
-    def getWallsOfCell(cells, coords):
-        l = Wall(coords, Coords(coords.x - 1, coords.y)) if (coords.x - 1 >= 0) else None
-        r = Wall(coords, Coords(coords.x + 1, coords.y)) if (coords.x + 1 <= cell_amount - 1) else None
-        u = Wall(coords, Coords(coords.x, coords.y + 1)) if (coords.y - 1 >= 0) else None
-        d = Wall(coords, Coords(coords.x, coords.y - 1)) if (coords.y + 1 <= cell_amount - 1) else None
-        return l, r, u, d
+    def getWallsOfCell(self, coords):
+        walls = []
+        if coords.x - 1 >= 0:
+            walls.append(Wall(coords, Coords(coords.x - 1, coords.y)))
+        if coords.x + 1 <= cell_amount - 1:
+            walls.append(Wall(coords, Coords(coords.x + 1, coords.y)))
+        if coords.y - 1 >= 0:
+            walls.append(Wall(coords, Coords(coords.x, coords.y - 1)))
+        if coords.y + 1 <= cell_amount - 1:
+            walls.append(Wall(coords, Coords(coords.x, coords.y + 1)))
+        return walls
 
 class Algorithm2(Strategy) :
 
@@ -93,12 +100,14 @@ class Algorithm2(Strategy) :
             curCoords = neighbor
             visitedCount += 1
     
-    def pickRandomNode(cells, coords):
+    def pickRandomNode(self, coords):
         upDown = random(1,-1)
         leftRight = random(1,-1)
         newCoords = Coords(coords.x + leftRight, coords.y + upDown)
+        if (newCoords.x < 0 or newCoords.x > cell_size - 1 
+            or newCoords.y < 0 or newCoords.y > cell_size - 1):
+            return self.pickRandomNode(coords)
         return newCoords
-
 
 
 class Generator() :
@@ -111,7 +120,7 @@ class Generator() :
         self.strategy = new_strategy
 
     def Generate(self):
-        print(self.strategy.Apply())
+        self.strategy.Apply()
         self.strategy.DoSomething()
 
 class Creator() :
@@ -120,6 +129,11 @@ class Creator() :
         pass
 
     def PrintLabyrinth(self):
+        #initialize full
+        out = []
+        for i in range(cell_amount):
+            for j in range(cell_amount):
+                d = []
         pass
 
 
