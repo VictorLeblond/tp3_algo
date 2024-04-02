@@ -161,7 +161,7 @@ class Creator() :
     #generate .scad file
     def OutputScad(self):
         cells = self.cleanupCells()
-        filename = "./labytinthe_algo" + str(strategy_choice) + ".scad"
+        filename = "./labyrinthe_algo" + str(strategy_choice) + ".scad"
         #initialize
         content = "difference () {\nunion() {\n"
         width = str(cell_amount * cell_size)
@@ -177,18 +177,14 @@ class Creator() :
         self.write(filename, content)
 
     def writeWall(self, cellCoords, direction):
-        directionMap = {
-            "l": 0,
-            "u": 90,
-            "r": 90,
-            "d": 0,
-        }
+        directionMap = {"l": 0, "u": 90, "r": 90, "d": 0}
         offsetX = (cellCoords[0] + (1 if direction == 'r' else 0)) * cell_size + (1 if direction == 'u' or direction == "r" else 0)
         offsetY = (cellCoords[1] + (1 if direction == 'd' else 0)) * cell_size
         rotation = "[0,0," + str(directionMap[direction]) + "]"
-        cube = "cube([" + (str(cell_size + 1)) + "," + str(wall_thickness) + "," + str(cell_size) + "], center=false);\n"
-        coords = "[" + str(offsetX) + "," + str(offsetY) + "," +",0]"
-        return "translate(" + coords + "){\nrotate (" + rotation + "){\n" + cube + "}\n}"
+        cube = "cube([" + (str(cell_size + wall_thickness)) + "," + str(wall_thickness) + "," + str(cell_size) + "], center=false);\n"
+        coords = "[" + str(offsetX) + "," + str(offsetY) + "," + ",0]"
+        comment = "\n//" + "(" + str(cellCoords[0]) + ", " + str(cellCoords[1]) + ") " + direction 
+        return comment + "\ntranslate(" + coords + "){\nrotate (" + rotation + "){\n" + cube + "}\n}"
     
     def write(self, fileName, content):
         file = open(fileName, "w")
