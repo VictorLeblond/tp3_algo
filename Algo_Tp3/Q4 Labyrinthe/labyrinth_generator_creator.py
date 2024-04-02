@@ -5,9 +5,8 @@ cell_size = 10 #mm
 wall_height = 10 #mm
 wall_thickness = 1 #mm
 cell_amount = 5 #number of cells going both sides of the square
-passages = []
 
-strategy_choice = 1
+strategy_choice = 2
 
 class Strategy :
     def __init__(self):
@@ -38,6 +37,7 @@ class Algorithm1(Strategy) :
         cells = [[0] * cell_amount for _ in range(cell_amount)]
         walls = []
         #Start with a grid full of walls. or no passages
+        passages = []
         #Pick a cell, mark it as part of the maze.
         startCoords = Coords(random.randrange(0, cell_amount - 1), random.randrange(0, cell_amount - 1))
         cells[startCoords.x][startCoords.y] = 1
@@ -46,7 +46,9 @@ class Algorithm1(Strategy) :
         #While there are walls in the list
         while(walls):
             #Pick a random wall from the list.
-            wall = walls[0]
+            rand_index, wall = random.choice(list(enumerate(walls)))
+            #Remove the wall from the list.
+            walls.pop(rand_index)
             #If only one of the cells that the wall divides is visited, then:
             if (cells[wall.dest.x][wall.dest.y] == 0):
                 #Make the wall a passage and mark the unvisited cell as part of the maze.
@@ -54,8 +56,6 @@ class Algorithm1(Strategy) :
                 cells[wall.dest.x][wall.dest.y] = 1
                 #Add the neighboring walls of the cell to the wall list.
                 walls.extend(self.getWallsOfCell(wall.dest))
-            #Remove the wall from the list.
-            walls.pop(0)
         #now we have passages
         for passage in passages:
             print(str(passage.source.x) + "," + str(passage.source.y) + "-->" + str(passage.dest.x) + "," + str(passage.dest.y))
@@ -78,37 +78,42 @@ class Algorithm2(Strategy) :
     def Apply(self):
         super().Apply()
         print("Applying Algorithm2")
-        #Aldous-Broder algorithm
+        #randomized DFS Iterative implementation (with stack)
         cells = [[0] * cell_amount for _ in range(cell_amount)]
-        visitedCount = 0
+        stack = []
         passages = []
-        #Pick a random cell as the current cell and mark it as visited.
-        curCoords = Coords(random(cell_amount), random(cell_amount))
-        cells[curCoords.x][curCoords.y] = 1
-        visitedCount += 1
-        #While there are unvisited cells:
-        while (visitedCount < cell_amount*cell_amount):
-            #Pick a random neighbour.
-            neighbor = self.pickRandomNode(cells, curCoords)
-            #If the chosen neighbour has not been visited
-            if (cells[neighbor.x][neighbor.y] != 1):
-                #Remove the wall between the current cell and the chosen neighbour.
-                passages.append(Wall(curCoords, neighbor))
-                #Mark the chosen neighbour as visited.
-                cells[neighbor.x][neighbor.y] = 1
-            #Make the chosen neighbour the current cell.
-            curCoords = neighbor
-            visitedCount += 1
+        #Choose the initial cell, mark it as visited and push it to the stack
+        curCell = Coords(random.randrange(0, cell_amount), random.randrange(0, cell_amount))
+        cells[curCell.x][curCell.y] = 1
+        stack.append(curCell)
+        #While the stack is not empty
+        while (stack):
+            #Pop a cell from the stack and make it a current cell
+            curCell = stack.pop()
+            #If the current cell has any neighbours which have not been visited
+            unvisited = self.hasUnvisitedNeighbours(cells, curCell)
+            if (unvisited):
+                #Push the current cell to the stack
+                stack.append(curCell)
+                #Choose one of the unvisited neighbours
+                #Remove the wall between the current cell and the chosen cell
+                passages.append(Wall(curCell, unvisited))
+                #Mark the chosen cell as visited and push it to the stack
+                cells[unvisited.x][unvisited.y] = 1
+                stack.append(unvisited)
+        for passage in passages:
+            print(str(passage.source.x) + "," + str(passage.source.y) + "-->" + str(passage.dest.x) + "," + str(passage.dest.y))
+        return passages
     
-    def pickRandomNode(self, coords):
-        upDown = random(1,-1)
-        leftRight = random(1,-1)
-        newCoords = Coords(coords.x + leftRight, coords.y + upDown)
-        if (newCoords.x < 0 or newCoords.x > cell_size - 1 
-            or newCoords.y < 0 or newCoords.y > cell_size - 1):
-            return self.pickRandomNode(coords)
-        return newCoords
-
+    def hasUnvisitedNeighbours(self, cells, coords):
+        x , y = coords.x, coords.y
+        deltas = [(0, 1), (0, -1), (-1, 0), (1, 0)]
+        for dx, dy in deltas:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < cell_amount and 0 <= ny < cell_amount and cells[nx][ny] == 0:
+                return Coords(nx, ny)
+        return False        
+    
 
 class Generator() :
     strategy = None
