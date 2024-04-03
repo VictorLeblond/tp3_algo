@@ -5,8 +5,9 @@ from collections import defaultdict
 cell_size = 10 #mm
 wall_height = 10 #mm
 wall_thickness = 1 #mm
-cell_amount = 10 #number of cells going both sides of the square
-passages = [] #use a dictionnary to map the source to...
+#Adjust this value for the maze size:
+cell_amount = 20 #number of cells going both sides of the square
+passages = []
 
 strategy_choice = 2
 
@@ -41,7 +42,6 @@ class Cell:
 
 class Algorithm1(Strategy) :
     def Apply(self):
-        #super().Apply()
         print("Applying Algorithm1")
         #Iterative randomized Prim's algorithm
         cells = [[0] * cell_amount for _ in range(cell_amount)]
@@ -83,7 +83,6 @@ class Algorithm1(Strategy) :
 class Algorithm2(Strategy) :
 
     def Apply(self):
-        super().Apply()
         print("Applying Algorithm2")
         #randomized DFS Iterative implementation (with stack)
         cells = [[0] * cell_amount for _ in range(cell_amount)]
@@ -97,16 +96,17 @@ class Algorithm2(Strategy) :
             #Pop a cell from the stack and make it a current cell
             curCell = stack.pop()
             #If the current cell has any neighbours which have not been visited
-            unvisited = self.hasUnvisitedNeighbours(cells, curCell)
-            if (unvisited):
+            neighbors = self.hasUnvisitedNeighbours(cells, curCell)
+            if (neighbors):
                 #Push the current cell to the stack
                 stack.append(curCell)
                 #Choose one of the unvisited neighbours
+                chosen_dir, chosen_cell = random.choice(neighbors)
                 #Remove the wall between the current cell and the chosen cell
-                passages.append(Wall(curCell, unvisited))
+                passages.append(Wall(curCell, chosen_cell, chosen_dir))
                 #Mark the chosen cell as visited and push it to the stack
-                cells[unvisited.x][unvisited.y] = 1
-                stack.append(unvisited)
+                cells[chosen_cell.x][chosen_cell.y] = 1
+                stack.append(chosen_cell)
         for passage in passages:
             print(str(passage.source.x) + "," + str(passage.source.y) + "-->" + str(passage.dest.x) + "," + str(passage.dest.y) + "" + str(passage.side))
         return passages
@@ -114,11 +114,13 @@ class Algorithm2(Strategy) :
     def hasUnvisitedNeighbours(self, cells, coords):
         x , y = coords.x, coords.y
         deltas = [(0, 1), (0, -1), (-1, 0), (1, 0)]
+        deltasMap = {(0, 1) : 'd', (0, -1) : 'u', (-1, 0) : 'l', (1, 0) : 'r'}
+        unvisited = []
         for dx, dy in deltas:
             nx, ny = x + dx, y + dy
             if 0 <= nx < cell_amount and 0 <= ny < cell_amount and cells[nx][ny] == 0:
-                return Coords(nx, ny)
-        return False        
+                unvisited.append((deltasMap[(dx, dy)], Coords(nx, ny)))
+        return unvisited
     
 
 class Generator() :
@@ -161,24 +163,25 @@ class Creator() :
     #generate .scad file
     def OutputScad(self):
         cells = self.cleanupCells()
-        filename = "./labyrinthe_algo" + str(strategy_choice) + ".scad"
+        filename = "./labyrinth_algo" + str(strategy_choice) + ".scad"
         #initialize
         content = "difference () {\nunion() {\n"
-        width = str(cell_amount * cell_size)
-        content += "translate([-0.5,-0.5,-1])\n{cube([" + width + "," + width + ",1], center=false);\n}"
-        for cell in cells:
+        width = str(cell_amount * cell_size + wall_thickness)
+        content += "translate([0,0,-1])\n{cube([" + width + "," + width + ",1], center=false);\n}"
+        for i in range(len(cells)):
+            cell = cells[i]
             #cells only take care of up and left
-            if cell.up: content += self.writeWall(cell.coords, 'u')
+            if cell.up and i != 0: content += self.writeWall(cell.coords, 'u')
             if cell.left: content += self.writeWall(cell.coords, 'l')
             #special cases for first last indices x and y
             if (cell.coords[0] == cell_amount - 1): content += self.writeWall(cell.coords, "r")
-            if (cell.coords[1] == cell_amount - 1): content += self.writeWall(cell.coords, "d")
+            if (cell.coords[1] == cell_amount - 1 and i != len(cells) -1): content += self.writeWall(cell.coords, "d")
         content += "}\n}"
         self.write(filename, content)
 
     def writeWall(self, cellCoords, direction):
-        directionMap = {"l": 0, "u": 90, "r": 90, "d": 0}
-        offsetX = (cellCoords[0] + (1 if direction == 'r' else 0)) * cell_size + (1 if direction == 'u' or direction == "r" else 0)
+        directionMap = {"l": 90, "u": 0, "r": 90, "d": 0}
+        offsetX = (cellCoords[0] + (1 if direction == 'r' else 0)) * cell_size + (1 if direction == 'l' or direction == 'r' else 0)
         offsetY = (cellCoords[1] + (1 if direction == 'd' else 0)) * cell_size
         rotation = "[0,0," + str(directionMap[direction]) + "]"
         cube = "cube([" + (str(cell_size + wall_thickness)) + "," + str(wall_thickness) + "," + str(cell_size) + "], center=false);\n"
